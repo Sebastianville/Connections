@@ -3,19 +3,21 @@
 # Standard library imports
 
 # Remote library imports
-from flask import request
+from flask import request, make_response, jsonify
 from flask_restful import Resource
 
 # Local imports
 from config import app, db, api
 # Add your model imports
-
+from models import Users, Favorite, Resources, Mentorships
 
 # Views go here!
 
 @app.route('/')
 def index():
-    return '<h1>Project Server</h1>'
+    return '<h1>Welcome to ConnectingBuddy</h1>'
+
+
 
 
 if __name__ == '__main__':
