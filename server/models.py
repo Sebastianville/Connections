@@ -18,6 +18,7 @@ class Users(db.Model, SerializerMixin):
     cover_photo = db.Column(db.String)
     bio = db.Column(db.String)
     birthdate = db.Column(db.Date, nullable=False)
+    is_mentor = db.Column(db.Boolean, default=False)
 
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     mentorships = db.relationship("Mentorships", back_populates='users')
@@ -30,7 +31,7 @@ class Users(db.Model, SerializerMixin):
         if not username:
             raise ValueError("username needs to be provided")
         return username
-
+    
     @validates('birthdate')
     def validate_age(self, key, birthdate):
         today = datetime.today()
@@ -66,6 +67,15 @@ class Users(db.Model, SerializerMixin):
         # Check if the provided password matches the hashed password
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
     
+    def __init__(self, username, email, password, birthdate, cover_photo=None, bio=None, is_mentor=False):
+        self.username = username
+        self.email = email
+        self.password_hash = password  # Hash the password
+        self.birthdate = birthdate
+        self.cover_photo = cover_photo
+        self.bio = bio
+        self.is_mentor = is_mentor
+    
     def __repr__(self):
         return f"<Users {self.id}, {self.username}, {self.birthdate}>"
     
@@ -95,7 +105,7 @@ class Resources(db.Model, SerializerMixin):
     description = db.Column(db.String)
     title = db.Column(db.String, unique=True, nullable=False)
     link = db.Column(db.String, unique=True, nullable=False)
-    resource_type = db.Column(db.Boolean, nullable=False) 
+    resource_type = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     favorites = db.relationship('Favorite', back_populates='resources', cascade='all, delete-orphan')
@@ -128,8 +138,8 @@ class Resources(db.Model, SerializerMixin):
 
     @validates('resource_type')
     def validate_resource_type(self, key, resource_type):
-        if not resource_type: 
-            raise ValueError("A resource_type is required")
+        if resource_type not in ['scholarship', 'internship']:  # Specify allowed values
+            raise ValueError("resource_type must be 'scholarship' or 'internship'")
         return resource_type
 
 
@@ -140,8 +150,8 @@ class Mentorships(db.Model, SerializerMixin):
     __tablename__ = "mentorship"
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    resource_id = db.Column(db.Integer, db.ForeignKey('resources.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    resource_id = db.Column(db.Integer, db.ForeignKey('resources.id'), nullable=False)
     completed_the_event = db.Column(db.DateTime, nullable=False)
     summary = db.Column(db.String, nullable=False)
     alternate_email = db.Column(db.String)
@@ -152,6 +162,13 @@ class Mentorships(db.Model, SerializerMixin):
 
     serialize_rules = ('-resources.mentorships', '-users.mentorships')
     serialize_only = ('id', 'user_id', 'resource_id', 'completed_the_event', 'summary', 'alternate_email')  
-
+   
+    @validates('user_id')
+    def validate_user_id(self, key, user_id):
+        user = Users.query.get(user_id)
+        if user is None or not user.is_mentor:
+            raise ValueError("The user must be a mentor.")
+        return user_id
+    
     def __repr__(self):
         return f"<Mentorships {self.id}, {self.summary}, {self.alternate_email}>"

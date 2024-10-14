@@ -84,6 +84,15 @@ class AllMentorships(Resource):
 
 api.add_resource(AllMentorships, '/mentorships')
 
+class AllResources(Resource):
+    def get(self):
+        resources = Resources.query.all()
+        if(not resources): 
+            return make_response({"error": "resource not found"}, 404)
+        resources_list = [que.to_dict() for que in resources]
+        return make_response(resources_list, 200)
+api.add_resource(AllResources, '/resources')
+
 
 class CreateNewResource(Resource):
     def post(self):
