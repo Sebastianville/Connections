@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 # Standard library imports
@@ -5,6 +6,8 @@
 # Remote library imports
 from flask import request, make_response, jsonify, session
 from flask_restful import Resource
+from flask_bcrypt import Bcrypt
+
 
 # Local imports
 from config import app, db, api
@@ -112,15 +115,31 @@ api.add_resource(CreateNewResource, '/resources')
 class Signup(Resource):
     def post(self):
         data = request.get_json()
-        #fix this 
-        new_user = Users(bio=data.get('bio'), image_url=data.get('image_url'), 
-        #password_hash=data.get('password') will execute @password_hash.setter therefore running the encryption that we wrote in models.py
-        username=data.get('username') )
-        new_user.password_hash=data.get('password')
+        password = data.get('password')
+        password_confirmation = data.get('password_confirmation')
+
+        if password != password_confirmation:
+            return make_response({'message': 'Passwords do not match'}, 400)
+        
+        # Check if the email already exists
+        existing_user = Users.query.filter_by(email=data.get('email')).first()
+        if existing_user:
+            return make_response({'message': 'Email already taken'}, 400)
+        
+        new_user = Users(
+            username=data.get('username'),
+            email=data.get('email'),
+            birthdate= data.get('birthdate'),
+            bio=data.get('bio'),
+            is_mentor=data.get('is_mentor') == 'true',
+            cover_photo=data.get('cover_photo'),
+            password = data.get('password')
+        )
+        
+
         try:
             db.session.add(new_user)
             db.session.commit()
-            #set session to user_id 
             session['user_id'] = new_user.id
             return make_response(new_user.to_dict(), 201)
         except Exception as e:
@@ -135,22 +154,26 @@ class UserLogin(Resource):
         if not email or not password:
             return make_response(jsonify({'error': 'Email and password required'}), 400)
         
-        username = Users.query.filter_by(email=email).first()
+        user = Users.query.filter_by(email=email).first()
         #the authenticae is coming from models
-        if username and username.authenticate(data.get('password')):
-            session['username_id'] = username.id 
-            return make_response(username.to_dict(), 200)
+        if user and user.authenticate(password):
+            session['username_id'] = user.id 
+            return make_response(user.to_dict(), 200)
         else:
-            return make_response({'message': 'Wrong email or password'}, 401)
+            return make_response({'message': 'Wrong user or password'}, 401)
 api.add_resource(UserLogin, '/login')
 
 class CheckSession(Resource):
     def get(self):
-        user_id = session['user_id']
+        user_id = session.get('user_id')  
         if user_id:
             cur_user = Users.query.filter_by(id=user_id).first()
-            return make_response(cur_user.to_dict(), 200)
-        return make_response({'message': 'no one is logged in'}, 200)
+            if cur_user:
+                return make_response(cur_user.to_dict(), 200)
+            return make_response({'message': 'User not found'}, 404)
+        
+        return make_response({'message': 'No one is logged in'}, 401)
+
 api.add_resource(CheckSession, '/check_session')
 
 class Logout(Resource):
@@ -175,7 +198,6 @@ class AllFavorites(Resource):
         return make_response(favorite_list, 200)
 
     def post(self):
-        # Get the logged-in user's ID from session
         user_id = session.get('user_id') 
         if not user_id:
             return make_response({'message': 'Unauthorized'}, 401)

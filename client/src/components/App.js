@@ -1,28 +1,44 @@
-import React, { useEffect, useState } from "react";
-import College from '../pages/College'
-import { Switch, Route } from "react-router-dom";
-import AdminDashBoard from "../pages/AdminDashBoard.Js";
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { UserProvider, UserContext } from './userContext';
+import NavBar from './NavBar';
+
+import Home from '../pages/Home';
+import Favorite from '../pages/Favorite.Js'
+import AdminDashboard from '../pages/AdminDashBoard.Js';
+import Profile from '../pages/profile';
+import College from '../pages/College';
+import Login from './Login';
+
 
 function App() {
-
-  const [resources, setResources] = useState([])
-  const [user, setUser] = useState(null);
-
-
-  const fetchResources = async () => {
-    const response = await fetch('http://localhost:5555/resources');
-    if (!response.ok) {
-      throw new Error('Failed to fetch resources');
-    }
-    return response.json();
-  };
-
-  if (!user) return <Login onLogin={setUser} />;
-  
   return (
-    <>
-      <AdminDashBoard /> 
-    </>
+    <UserProvider>
+      <Router>
+        <NavBar />
+        <Switch>
+          <Route path="/" exact component={Home} />
+          <Route path="/college" component={College} />
+
+         
+          <UserContext.Consumer>
+            {({ user }) => (
+              <>
+                {!user ? (
+                  <Route path="/login" component={Login} />
+                ) : (
+                  <>
+                    <Route path="/favorites" component={Favorite} />
+                    <Route path="/profile" component={Profile} />
+                    {user.is_mentor && <Route path="/admin" component={AdminDashboard} />}
+                  </>
+                )}
+              </>
+            )}
+          </UserContext.Consumer>
+        </Switch>
+      </Router>
+    </UserProvider>
   );
 }
 

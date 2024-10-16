@@ -3,7 +3,7 @@ from random import randint, choice as rc
 from datetime import datetime, timedelta
 
 # Remote library imports
-from faker import Faker
+# from faker import Faker
 
 # Local imports
 from app import app
@@ -69,3 +69,4 @@ if __name__ == '__main__':
         db.session.commit()
 
         print("Created users, resources, favorites, and mentorships successfully.")
+

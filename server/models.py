@@ -12,11 +12,11 @@ class Users(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    email = db.Column(db.String(255), nullable=False)
     _password_hash = db.Column(db.String)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-    cover_photo = db.Column(db.String)
-    bio = db.Column(db.String)
+    cover_photo = db.Column(db.String, nullable=True)
+    bio = db.Column(db.String(500))
     birthdate = db.Column(db.Date, nullable=False)
     is_mentor = db.Column(db.Boolean, default=False)
 
@@ -70,7 +70,7 @@ class Users(db.Model, SerializerMixin):
     def __init__(self, username, email, password, birthdate, cover_photo=None, bio=None, is_mentor=False):
         self.username = username
         self.email = email
-        self.password_hash = password  # Hash the password
+        self.password_hash = password 
         self.birthdate = birthdate
         self.cover_photo = cover_photo
         self.bio = bio

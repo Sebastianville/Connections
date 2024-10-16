@@ -1,22 +1,74 @@
-import React from "react";
-import { NavLink } from "react-router-dom";
+import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
+import { UserContext } from './userContext';
+import styled from 'styled-components';
 
-function NavBar(){
+const Nav = styled.nav`
+  background-color: orange;
+  padding: 5px 15px; 
+`;
 
-    return (
-        <header className="navbar">
-          <nav>
-            <ul className="nav-links">
-              <li className="nav-item"><NavLink to="/" className="nav-link" activeClassName="active">Home</NavLink></li>
-              <li className="nav-item"><NavLink to="/college" className="nav-link" activeClassName="active">College</NavLink></li>
-              <li className="nav-item"><NavLink to="/favorite" className="nav-link" activeClassName="active">Favorite</NavLink></li>
-              <li className="nav-item"><NavLink to="/favorite" className="nav-link" activeClassName="active">Profile</NavLink></li>
-              <li className="nav-item"><NavLink to="/admin-dash-board" className="nav-link" activeClassName="active">Admin Dash Board</NavLink></li>
-            </ul>
-          </nav>
-        </header>
-      );
-    }
+const NavList = styled.ul`
+  list-style-type: none;
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+`;
+
+const NavItem = styled.li`
+  margin: 0 15px;
+`;
+
+const NavLink = styled(Link)`
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const LogoutButton = styled.button`
+  background-color: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const NavBar = () => {
+  const { user } = useContext(UserContext);
+
+  const handleLogout = async () => {
+    await fetch('http://localhost:5555/logout', {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+  };
+
+  return (
+    <Nav>
+      <NavList>
+        <NavItem><NavLink to="/">Home</NavLink></NavItem>
+        <NavItem><NavLink to="/college">College</NavLink></NavItem>
+        {user ? (
+          <>
+            <NavItem><NavLink to="/profile">Profile</NavLink></NavItem>
+            <NavItem><NavLink to="/favorite">Favorites</NavLink></NavItem>
+            <NavItem><LogoutButton onClick={handleLogout}>Logout</LogoutButton></NavItem>
+          </>
+        ) : (
+          <NavItem><NavLink to="/login">Log In</NavLink></NavItem>
+        )}
+      </NavList>
+    </Nav>
+  );
+};
 
 export default NavBar;
-    
