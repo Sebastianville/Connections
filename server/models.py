@@ -28,7 +28,7 @@ class Users(db.Model, SerializerMixin):
     favorite_resources = association_proxy('favorites', 'resource')
 
     serialize_rules = ('-favorites.user', '-mentorships.users')
-    serialize_only = ('id', 'username', 'email', 'bio', 'created_at', 'birthdate', 'favorites')  
+    serialize_only = ('id', 'username', 'email', 'bio', 'created_at', 'birthdate', 'favorites', 'is_mentor', 'phone_number', 'receive_sms_notifications')  
 
     @validates("username")
     def validate_username(self, key, username):
@@ -71,7 +71,7 @@ class Users(db.Model, SerializerMixin):
         # Check if the provided password matches the hashed password
         return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
     
-    def __init__(self, username, email, password, birthdate, cover_photo=None, bio=None, is_mentor=False):
+    def __init__(self, username, email, password, birthdate, cover_photo=None, bio=None, is_mentor=False, phone_number=True, receive_sms_notifications=False):
         self.username = username
         self.email = email
         self.password_hash = password 
@@ -79,6 +79,8 @@ class Users(db.Model, SerializerMixin):
         self.cover_photo = cover_photo
         self.bio = bio
         self.is_mentor = is_mentor
+        self.phone_number = phone_number
+        self.receive_sms_notifications = receive_sms_notifications
     
     def __repr__(self):
         return f"<Users {self.id}, {self.username}, {self.birthdate}>"

@@ -82,7 +82,7 @@ function SignUpForm() {
           type="email"
           name="email"
           onChange={formik.handleChange}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.email}
         />
         {formik.touched.email && formik.errors.email && <ErrorDiv>{formik.errors.email}</ErrorDiv>}
@@ -94,7 +94,7 @@ function SignUpForm() {
           type="password"
           name="password"
           onChange={formik.handleChange}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.password}
         />
         {formik.touched.password && formik.errors.password && <ErrorDiv>{formik.errors.password}</ErrorDiv>}
@@ -108,7 +108,7 @@ function SignUpForm() {
           type="password"
           name="password_confirmation"
           onChange={formik.handleChange}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.password_confirmation}
         />
         {formik.touched.password_confirmation && formik.errors.password_confirmation && <ErrorDiv>{formik.errors.password_confirmation}</ErrorDiv>}
@@ -122,7 +122,7 @@ function SignUpForm() {
           type="date"
           name="birthdate"
           onChange={formik.handleChange}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.birthdate}
         />
         {formik.touched.birthdate && formik.errors.birthdate && <ErrorDiv>{formik.errors.birthdate}</ErrorDiv>}
@@ -136,7 +136,7 @@ function SignUpForm() {
           type="text"
           name="bio"
           onChange={formik.handleChange}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.bio}
         />
         {formik.touched.bio && formik.errors.bio && <ErrorDiv>{formik.errors.bio}</ErrorDiv>}
@@ -149,7 +149,7 @@ function SignUpForm() {
         <Select
           name="is_mentor"
           onChange={(e) => formik.setFieldValue('is_mentor', e.target.value === 'true')}
-          onBlur={formik.handleBlur} // Add this line
+          onBlur={formik.handleBlur} 
           value={formik.values.is_mentor.toString()} 
         >
           <option value='false'>No</option>

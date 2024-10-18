@@ -8,7 +8,6 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from flask_bcrypt import Bcrypt
-import os
 
 
 # Local imports
@@ -35,4 +34,9 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_crede
 
 bcrypt = Bcrypt(app)
 
+
+app.secret_key = 'your_secret_key'
+
+import http.client
+import json
 

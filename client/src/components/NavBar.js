@@ -67,6 +67,7 @@ const NavBar = () => {
             <NavItem><NavLink to="/profile">Profile</NavLink></NavItem>
             <NavItem><NavLink to="/favorite">Favorites</NavLink></NavItem>
             <NavItem><LogoutButton onClick={handleLogout}>Logout</LogoutButton></NavItem>
+          {user.is_mentor && <NavItem><NavLink to="/admin"> Admin</NavLink></NavItem>}
           </>
         ) : (
           <NavItem><NavLink to="/login">Log In</NavLink></NavItem>

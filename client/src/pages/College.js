@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../components/userContext';
+import '../index.css';
 
 const College = () => {
   const { user, updateUser } = useContext(UserContext);
   const [resources, setResources] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
-   // Need a filter and a default filter to show all
   const [filter, setFilter] = useState('all');
+  const [notification, setNotification] = useState(''); // Notification state
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -17,7 +18,7 @@ const College = () => {
         if (!response.ok) throw new Error('Failed to fetch resources');
         const data = await response.json();
         setResources(data);
-        setFilteredResources(data); 
+        setFilteredResources(data);
       } catch (error) {
         console.error('Error fetching resources:', error);
       }
@@ -36,7 +37,16 @@ const College = () => {
 
   const addToFavorites = async (resourceId) => {
     if (!user) {
-      alert('You must be logged in to add favorites.');
+      setNotification('You must be logged in to add favorites.');
+      clearNotification();
+      return;
+    }
+
+    // Check if the resource is already in the user's favorites
+    if (user.favorites.some(favorite => favorite.id === resourceId)) {
+      setNotification('This resource is already in your favorites.');
+      
+      clearNotification();
       return;
     }
 
@@ -53,28 +63,29 @@ const College = () => {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to add favorite');
       }
-  
+
       const data = await response.json();
       console.log('Favorite added:', data);
-      updateUser({...user, favorites: [...user.favorites, data]})
+      updateUser({...user, favorites: [...user.favorites, data]});
+      setNotification('Resource added to favorites.'); // Set success notification
+      clearNotification(); // Clear notification after a delay
     } catch (error) {
       console.error('Error adding favorite:', error);
+      setNotification('Failed to add resource to favorites.');
+      clearNotification();
     }
   };
 
-  //     if (!response.ok) throw new Error('Failed to add to favorites');
-  //     const newFavorite = await response.json();
-  //     alert('Resource added to favorites!');
-  //     updateFavorites(newFavorite);
-  //   } catch (error) {
-  //     console.error('Error adding to favorites:', error);
-  //     alert('Error adding to favorites');
-  //   }
-  // };
+  const clearNotification = () => {
+    setTimeout(() => {
+      setNotification('');
+    }, 3000); 
+  };
 
   return (
     <div>
       <h1>College Resources</h1>
+
       <div>
         <label>
           Filter by:
@@ -85,24 +96,32 @@ const College = () => {
           </select>
         </label>
       </div>
-      <ul>
+
+      {/* Display notification if present */}
+      {notification && <p className="notification">{notification}</p>}
+
+      <div className="cards">
         {filteredResources.length > 0 ? (
           filteredResources.map((resource) => (
-            <li key={resource.id}>
-              <h3>{resource.title}</h3>
-              <p>{resource.description}</p>
-              <p>Type of Resource: {resource.resource_type}</p>
-              {user ? (
-                <button onClick={() => addToFavorites(resource.id)}>Add to Favorites</button>
-              ) : (
-                <button disabled>Add to Favorites (Login Required)</button>
-              )}
-            </li>
+            <div className="card" key={resource.id}>
+              <div className="card-content">
+                <h3>{resource.title}</h3>
+                <p>{resource.description}</p>
+                <p>Type of Resource: {resource.resource_type}</p>
+                {user ? (
+                  <button onClick={() => addToFavorites(resource.id)}>
+                    Add to Favorites
+                  </button>
+                ) : (
+                  <button disabled>Add to Favorites (Login Required)</button>
+                )}
+              </div>
+            </div>
           ))
         ) : (
           <p>No resources found.</p>
         )}
-      </ul>
+      </div>
     </div>
   );
 };

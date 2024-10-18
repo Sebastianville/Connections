@@ -4,7 +4,7 @@ const AdminDashboard = () => {
   const [resource, setResource] = useState({
     title: '',
     description: '',
-    type: 'internship', // default to internship
+    type: 'internship',
   });
 
   const handleChange = (e) => {

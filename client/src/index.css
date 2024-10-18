@@ -5,3 +5,64 @@
   --text: hsla(0, 0%, 100%, 0.88);
 }
 
+.cards {
+  display: flex;
+  overflow-x: auto; 
+  scroll-behavior: smooth; 
+  padding: 10px;
+  gap: 20px;
+  align-items: stretch; 
+}
+
+.card {
+  width: 300px; 
+  height: 400px; 
+  background-color: #f9f9f9; /* Light background color */
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column; /* Ensure content aligns vertically */
+}
+
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+}
+
+h3 {
+  color: #333; /* Darker text color for the title */
+}
+
+p {
+  color: #666; /* Medium gray text color for description */
+}
+
+.card-content p:last-of-type {
+  font-weight: bold; /* Emphasize resource type */
+  color: #007bff; /* Blue color for the resource type text */
+}
+
+button {
+  margin-top: auto; /* Push the button to the bottom */
+  background-color: #007bff; /* Button background color */
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}

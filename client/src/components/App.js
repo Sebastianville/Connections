@@ -12,7 +12,7 @@ import Login from './Login';
 
 
 function App() {
-  const { user } = useContext(UserContext); // Access user from context
+  const { user } = useContext(UserContext); 
 
   return (
     <>
@@ -29,7 +29,7 @@ function App() {
               <Route path="/college" component={College} />
               <Route path="/favorite" component={Favorite} />
               <Route path="/profile" component={Profile} />
-              {user.is_mentor && <Route path="/admin" component={AdminDashboard} />}
+              <Route path="/admin"> {user.is_mentor ? <AdminDashboard /> : null} </Route >
             </Switch>
           )}
         </>

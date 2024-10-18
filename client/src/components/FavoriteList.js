@@ -1,20 +1,25 @@
+import React from 'react';
+import '../index.css'
+
 const FavoriteList = ({ favorites, onRemove }) => {
- 
- 
+
+
   return (
-    <ul>
+    <div className="cards">
       {favorites.length > 0 ? (
         favorites.map((favorite) => (
-          <li key={favorite.id}>
-            <h3>{favorite.resource.title}</h3>
-            <p>{favorite.resource.description}</p>
-            <button onClick={() => onRemove(favorite.id)}>Remove</button>
-          </li>
+          <div className="card" key={favorite.id}>
+            <div className="card-content">
+              <h3>{favorite.resource.title}</h3>
+              <p>{favorite.resource.description}</p>
+              <button onClick={() => onRemove(favorite.id)}>Remove</button>
+            </div>
+          </div>
         ))
       ) : (
         <p>No favorites yet!</p>
       )}
-    </ul>
+    </div>
   );
 };
 

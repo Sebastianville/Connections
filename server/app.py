@@ -8,8 +8,10 @@ from flask import request, make_response, jsonify, session
 from flask_restful import Resource
 from flask_bcrypt import Bcrypt
 
-from twilio_helper import send_sms 
+# from twilio_helper import send_sms 
 import datetime 
+import requests
+
 
 # Local imports
 from config import app, db, api
@@ -140,15 +142,17 @@ class Signup(Resource):
         existing_user = Users.query.filter_by(email=data.get('email')).first()
         if existing_user:
             return make_response({'message': 'Email already taken'}, 422)
-        
+        print(f"Received data: {data}")
         format = '%Y-%m-%d'
         new_user = Users(
             username=data.get('username'),
             email=data.get('email'),
             birthdate= datetime.datetime.strptime(data.get('birthdate'), format),
             bio=data.get('bio'),
-            is_mentor=data.get('is_mentor') == 'true',
+            is_mentor=bool(data.get('is_mentor')),
             cover_photo=data.get('cover_photo'),
+            phone_number=data.get('phone_number'),
+            receive_sms_notifications= data.get('receive_sms_notifications'),
             password = data.get('password')
         )
         
@@ -158,7 +162,14 @@ class Signup(Resource):
             db.session.commit()
             session['user_id'] = new_user.id
             print(f"User {new_user.id} signed up successfully")
+            
+            if new_user.phone_number and new_user.receive_sms_notifications:
+                welcome_message = f"Hello {new_user.username}, welcome to ConnectingBuddy!"
+                sms_response = send_welcome_message(new_user.phone_number, welcome_message)
+                print(f"SMS response: {sms_response}")
+
             return make_response(new_user.to_dict(), 201)
+
         except Exception as e:
             print(f"Error during signup: {e}")
             return make_response({'message': str(e)}, 422)
@@ -220,6 +231,7 @@ class AllFavorites(Resource):
             print(f"Received data for new favorite: {data}")
 
             user = Users.query.get(user_id)
+            print(user.to_dict())
             resource_id = data.get('resource_id')
             if not resource_id:
                 return make_response({'message': 'resource_id is required'}, 400)
@@ -236,11 +248,12 @@ class AllFavorites(Resource):
             )
             db.session.add(new_favorite)
             db.session.commit()
+            # print(user.phone_number, user.receive_sms_notifications)
 
-            if user.phone_number and user.receive_sms_notifications:
-                message_body = f"Hello {user.username}, you have favorited the resource: {resource.title}."
-                print(f"Sending SMS to {user.phone_number}: {message_body}")
-                send_sms(user.phone_number, message_body)
+            # if user.phone_number and user.receive_sms_notifications:
+            #     message_body = f"Hello {user.username}, you have favorited the resource: {new_favorite.resource.title}."
+            #     print(f"Sending SMS to {user.phone_number}: {message_body}")
+            #     send_sms(user.phone_number, message_body)
 
             return make_response(new_favorite.to_dict(), 201)
         
