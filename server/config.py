@@ -36,4 +36,3 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_crede
 bcrypt = Bcrypt(app)
 
 
-app.secret_key = 'your_secret_key'
