@@ -8,18 +8,25 @@ from flask import request, make_response, jsonify, session
 from flask_restful import Resource
 from flask_bcrypt import Bcrypt
 
+from twilio_helper import send_sms 
+import datetime 
 
 # Local imports
 from config import app, db, api
+
 # Add your model imports
 from models import Users, Favorite, Resources, Mentorships
 from werkzeug.exceptions import NotFound
 
-# Views go here!
+
 
 @app.route('/')
-def index():
-    return '<h1>Welcome to ConnectingBuddy</h1>'
+def welcome():
+    return jsonify(message="Welcome to the ConnectingBuddy")
+
+
+
+
 
 class AllUsers(Resource):
     def get(self):
@@ -33,6 +40,7 @@ class AllUsers(Resource):
         try: 
             #get json from request
             data = request.get_json()
+            print(f"Received data for new user: {data}")
             #create a new user instance
             new_user = Users(**data)
             new_user.password_hash = data['password']
@@ -48,6 +56,7 @@ api.add_resource(AllUsers, '/users')
 
 class OneUser(Resource):
     def get(self, id):
+        print(f"Fetching user with id: {id}")
         user = Users.query.filter_by(id=id).first()
         if not user: 
             return make_response({"error": "user not found"}, 404)
@@ -59,6 +68,7 @@ class OneUser(Resource):
             return make_response({"error": "user not found"}, 404)
         db.session.delete(user)
         db.session.commit()
+        print(f"User with id {id} deleted successfully")
         return make_response({}, 204)
     
     def patch(self, id):
@@ -66,6 +76,7 @@ class OneUser(Resource):
         if not user:
             return make_response(jsonify({'error': "User not found"}), 404)
         data = request.get_json()
+        print(f"Received update data for user {id}: {data}")
         for key, value in data.items():
             setattr(user, key, value)
         try: 
@@ -102,11 +113,14 @@ class CreateNewResource(Resource):
         try: 
             #get json from request
             data = request.get_json()
+            print(f"Received data for new resource: {data}")
             #create a new resource instance
             new_resource = Resources(**data)
             db.session.add(new_resource)
             db.session.commit()
-        except:
+            print(f"Resource created successfully: {new_resource.to_dict()}")
+        except Exception as e:
+            print(f"Error creating resource: {e}")
             return make_response({'message': 'creating the new resource went wrong'}, 422)
         return make_response(new_resource.to_dict(), 201)
     
@@ -119,17 +133,19 @@ class Signup(Resource):
         password_confirmation = data.get('password_confirmation')
 
         if password != password_confirmation:
+            print("Passwords do not match")
             return make_response({'message': 'Passwords do not match'}, 400)
         
         # Check if the email already exists
         existing_user = Users.query.filter_by(email=data.get('email')).first()
         if existing_user:
-            return make_response({'message': 'Email already taken'}, 400)
+            return make_response({'message': 'Email already taken'}, 422)
         
+        format = '%Y-%m-%d'
         new_user = Users(
             username=data.get('username'),
             email=data.get('email'),
-            birthdate= data.get('birthdate'),
+            birthdate= datetime.datetime.strptime(data.get('birthdate'), format),
             bio=data.get('bio'),
             is_mentor=data.get('is_mentor') == 'true',
             cover_photo=data.get('cover_photo'),
@@ -141,8 +157,10 @@ class Signup(Resource):
             db.session.add(new_user)
             db.session.commit()
             session['user_id'] = new_user.id
+            print(f"User {new_user.id} signed up successfully")
             return make_response(new_user.to_dict(), 201)
         except Exception as e:
+            print(f"Error during signup: {e}")
             return make_response({'message': str(e)}, 422)
 api.add_resource(Signup, '/signup')
 
@@ -157,21 +175,25 @@ class UserLogin(Resource):
         user = Users.query.filter_by(email=email).first()
         #the authenticae is coming from models
         if user and user.authenticate(password):
-            session['username_id'] = user.id 
+            session['user_id'] = user.id
+            # session['username_id'] = user.id 
             return make_response(user.to_dict(), 200)
         else:
+            print("Invalid email or password")
             return make_response({'message': 'Wrong user or password'}, 401)
 api.add_resource(UserLogin, '/login')
 
 class CheckSession(Resource):
     def get(self):
+        print("Checking session for logged-in user")
         user_id = session.get('user_id')  
         if user_id:
+            print(f"User ID found in session: {user_id}")
             cur_user = Users.query.filter_by(id=user_id).first()
             if cur_user:
                 return make_response(cur_user.to_dict(), 200)
             return make_response({'message': 'User not found'}, 404)
-        
+        print("No user logged in")
         return make_response({'message': 'No one is logged in'}, 401)
 
 api.add_resource(CheckSession, '/check_session')
@@ -184,37 +206,56 @@ api.add_resource(Logout, '/logout')
 
 
 class AllFavorites(Resource):
-    def get(self):
-       # Get the logged-in user's ID from session
-        user_id = session.get('user_id')  # Corrected from 'users_id'
-        if not user_id:
-            return make_response({'message': 'Unauthorized'}, 401)
-
-        favorites = Favorite.query.filter_by(user_id=user_id).all()
-        if not favorites:
-            return make_response({"message": "No favorites found for this user"}, 404)
-        
-        favorite_list = [favorite.to_dict() for favorite in favorites]
-        return make_response(favorite_list, 200)
-
     def post(self):
-        user_id = session.get('user_id') 
+        # print("POST /favorites route hit")
+        # print(f"Session data: {session}")
+        # print("Before checking for user in session")
+        user_id = session.get('user_id')
         if not user_id:
+            print("Unauthorized: no user in session")
             return make_response({'message': 'Unauthorized'}, 401)
 
         try:
             data = request.get_json()
+            print(f"Received data for new favorite: {data}")
+
+            user = Users.query.get(user_id)
+            resource_id = data.get('resource_id')
+            if not resource_id:
+                return make_response({'message': 'resource_id is required'}, 400)
+            
+            existing_favorite = Favorite.query.filter_by(user_id=user_id, resource_id=resource_id).first()
+            if existing_favorite:
+                return make_response({'message': 'Resource already favorited'}, 400)
+
+            # Create a new Favorite entry
             new_favorite = Favorite(
-                resource_id=data['resource_id'],
-                user_id=user_id,
+                resource_id=resource_id,
+                user_id=user_id,  
                 personal_comment=data.get('personal_comment')
             )
             db.session.add(new_favorite)
             db.session.commit()
-        except Exception as e:
-            return make_response({'message': f'Creating the favorite went wrong: {str(e)}'}, 422)
+
+            if user.phone_number and user.receive_sms_notifications:
+                message_body = f"Hello {user.username}, you have favorited the resource: {resource.title}."
+                print(f"Sending SMS to {user.phone_number}: {message_body}")
+                send_sms(user.phone_number, message_body)
+
+            return make_response(new_favorite.to_dict(), 201)
         
-        return make_response(new_favorite.to_dict(), 201)
+        except Exception as e:
+            db.session.rollback()
+            return make_response({'message': f'Error creating favorite: {str(e)}'}, 500)
+        
+    def get(self):
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({'error': 'User not authenticated'}), 401
+
+        favorites = Favorite.query.filter_by(user_id=user_id).all()
+        return jsonify([favorite.to_dict() for favorite in favorites]), 200
+        
 api.add_resource(AllFavorites, '/favorites')
 
 class FavoriteDelete(Resource):

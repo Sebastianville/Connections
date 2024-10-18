@@ -2,7 +2,7 @@ import { useState, useContext } from "react";
 import { UserContext } from "./userContext";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { FormField, Label, Input, Error, Button } from './StyledComponents';
+import { FormField, Label, Input, ErrorDiv, Button } from './StyledComponents';
 
 
 const LoginSchema = yup.object().shape({
@@ -58,7 +58,7 @@ function LoginForm() {
           value={formik.values.username}
         />
         {formik.errors.username && formik.touched.username ? (
-          <Error>{formik.errors.username}</Error>
+          <ErrorDiv>{formik.errors.username}</ErrorDiv>
         ) : null}
       </FormField>
 
@@ -71,7 +71,7 @@ function LoginForm() {
           value={formik.values.email}
         />
         {formik.errors.email && formik.touched.email ? (
-          <Error>{formik.errors.email}</Error>
+          <ErrorDiv>{formik.errors.email}</ErrorDiv>
         ) : null}
       </FormField>
 
@@ -84,11 +84,11 @@ function LoginForm() {
           value={formik.values.password}
         />
         {formik.errors.password && formik.touched.password ? (
-          <Error>{formik.errors.password}</Error>
+          <ErrorDiv>{formik.errors.password}</ErrorDiv>
         ) : null}
       </FormField>
 
-      {error && <Error>{error}</Error>}
+      {error && <ErrorDiv>{error}</ErrorDiv>}
 
       <FormField>
         <Button type="submit" disabled={formik.isSubmitting}>

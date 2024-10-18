@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { UserContext } from './userContext';
 import styled from 'styled-components';
 
@@ -43,14 +43,19 @@ const LogoutButton = styled.button`
 `;
 
 const NavBar = () => {
-  const { user } = useContext(UserContext);
-
+  const { user, updateUser } = useContext(UserContext);
+  const history = useHistory()
   const handleLogout = async () => {
     await fetch('http://localhost:5555/logout', {
       method: 'DELETE',
       credentials: 'include',
     });
+
+    updateUser(null)
+    history.push("/login")
   };
+
+  
 
   return (
     <Nav>

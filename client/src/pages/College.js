@@ -2,10 +2,11 @@ import React, { useEffect, useState, useContext } from 'react';
 import { UserContext } from '../components/userContext';
 
 const College = () => {
-  const { user } = useContext(UserContext);
+  const { user, updateUser } = useContext(UserContext);
   const [resources, setResources] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
-  const [filter, setFilter] = useState('all'); // Default filter to show all
+   // Need a filter and a default filter to show all
+  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -48,15 +49,28 @@ const College = () => {
         body: JSON.stringify({ resource_id: resourceId }),
         credentials: 'include',
       });
-
-      if (!response.ok) throw new Error('Failed to add to favorites');
-      const newFavorite = await response.json();
-      alert('Resource added to favorites!');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to add favorite');
+      }
+  
+      const data = await response.json();
+      console.log('Favorite added:', data);
+      updateUser({...user, favorites: [...user.favorites, data]})
     } catch (error) {
-      console.error('Error adding to favorites:', error);
-      alert('Error adding to favorites');
+      console.error('Error adding favorite:', error);
     }
   };
+
+  //     if (!response.ok) throw new Error('Failed to add to favorites');
+  //     const newFavorite = await response.json();
+  //     alert('Resource added to favorites!');
+  //     updateFavorites(newFavorite);
+  //   } catch (error) {
+  //     console.error('Error adding to favorites:', error);
+  //     alert('Error adding to favorites');
+  //   }
+  // };
 
   return (
     <div>

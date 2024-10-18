@@ -23,7 +23,13 @@ export const Input = styled.input`
   }
 `;
 
-export const Error = styled.div`
+export const CheckboxInput = styled(Input)`
+  width: auto;
+  margin-right: 10px;
+`;
+
+
+export const ErrorDiv = styled.div`
   color: red;
   font-size: 14px;
   margin-top: 5px;

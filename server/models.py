@@ -19,12 +19,16 @@ class Users(db.Model, SerializerMixin):
     bio = db.Column(db.String(500))
     birthdate = db.Column(db.Date, nullable=False)
     is_mentor = db.Column(db.Boolean, default=False)
+    phone_number = db.Column(db.String(10), nullable=True) 
+    receive_sms_notifications = db.Column(db.Boolean, default=False)
 
     favorites = db.relationship('Favorite', back_populates='user', cascade='all, delete-orphan')
     mentorships = db.relationship("Mentorships", back_populates='users')
 
+    favorite_resources = association_proxy('favorites', 'resource')
+
     serialize_rules = ('-favorites.user', '-mentorships.users')
-    serialize_only = ('id', 'username', 'email', 'bio', 'created_at', 'birthdate')  
+    serialize_only = ('id', 'username', 'email', 'bio', 'created_at', 'birthdate', 'favorites')  
 
     @validates("username")
     def validate_username(self, key, username):
@@ -89,10 +93,10 @@ class Favorite(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     user = db.relationship('Users', back_populates='favorites')
-    resources = db.relationship('Resources', back_populates='favorites')
+    resource = db.relationship('Resources', back_populates='favorites')
 
-    serialize_rules = ('-user.favorites', '-resources.favorites')
-    serialize_only = ('id','resource_id', 'user_id', 'created_at', 'personal_comment')
+    serialize_rules = ('-user.favorites', '-resource.favorites')
+    serialize_only = ('id','resource_id', 'user_id', 'created_at', 'personal_comment', 'resource')
 
     def __repr__(self):
         return f"<Favorite {self.id}, {self.personal_comment}, {self.user_id}>"
@@ -108,10 +112,10 @@ class Resources(db.Model, SerializerMixin):
     resource_type = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-    favorites = db.relationship('Favorite', back_populates='resources', cascade='all, delete-orphan')
-    mentorships = db.relationship('Mentorships', back_populates='resources')
+    favorites = db.relationship('Favorite', back_populates='resource', cascade='all, delete-orphan')
+    mentorships = db.relationship('Mentorships', back_populates='resource')
 
-    serialize_rules = ('-favorites.resources', '-mentorships.resources')
+    serialize_rules = ('-favorites.resource', '-mentorships.resource')
     serialize_only = ('id', 'description', 'title', 'link', 'resource_type', 'created_at')  
 
 
@@ -156,11 +160,11 @@ class Mentorships(db.Model, SerializerMixin):
     summary = db.Column(db.String, nullable=False)
     alternate_email = db.Column(db.String)
 
-    resources = db.relationship('Resources', back_populates='mentorships')
+    resource = db.relationship('Resources', back_populates='mentorships')
     users = db.relationship("Users", back_populates='mentorships')
 
 
-    serialize_rules = ('-resources.mentorships', '-users.mentorships')
+    serialize_rules = ('-resource.mentorships', '-users.mentorships')
     serialize_only = ('id', 'user_id', 'resource_id', 'completed_the_event', 'summary', 'alternate_email')  
    
     @validates('user_id')

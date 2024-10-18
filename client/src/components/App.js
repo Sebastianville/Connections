@@ -1,45 +1,38 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { UserProvider, UserContext } from './userContext';
 import NavBar from './NavBar';
 
 import Home from '../pages/Home';
-import Favorite from '../pages/Favorite.Js'
-import AdminDashboard from '../pages/AdminDashBoard.Js';
+import Favorite from '../pages/Favorite';
+import AdminDashboard from '../pages/AdminDashBoard';
 import Profile from '../pages/profile';
 import College from '../pages/College';
 import Login from './Login';
 
 
 function App() {
-  return (
-    <UserProvider>
-      <Router>
-        <NavBar />
-        <Switch>
-          <Route path="/" exact component={Home} />
-          <Route path="/college" component={College} />
+  const { user } = useContext(UserContext); // Access user from context
 
-         
-          <UserContext.Consumer>
-            {({ user }) => (
-              <>
-                {!user ? (
-                  <Route path="/login" component={Login} />
-                ) : (
-                  <>
-                    <Route path="/favorites" component={Favorite} />
-                    <Route path="/profile" component={Profile} />
-                    {user.is_mentor && <Route path="/admin" component={AdminDashboard} />}
-                  </>
-                )}
-              </>
-            )}
-          </UserContext.Consumer>
-        </Switch>
-      </Router>
-    </UserProvider>
-  );
-}
+  return (
+    <>
+        <NavBar />
+          { !user ? (
+            <Switch>
+              <Route path="/login" component={Login} />
+              <Route path="/" exact component={Home} />
+              <Route path="/college" component={College} />
+            </ Switch>
+          ) : (
+            <Switch>
+              <Route path="/" exact component={Home} />
+              <Route path="/college" component={College} />
+              <Route path="/favorite" component={Favorite} />
+              <Route path="/profile" component={Profile} />
+              {user.is_mentor && <Route path="/admin" component={AdminDashboard} />}
+            </Switch>
+          )}
+        </>
+)};
 
 export default App;

@@ -4,6 +4,8 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  //need to add favorites into state
+  const [favorites, setFavorites] = useState([]);
 
   const fetchUser = async () => {
     try {
@@ -18,8 +20,12 @@ export const UserProvider = ({ children }) => {
       console.error('Error fetching user:', error);
     }
   };
-  
 
+  useEffect(() => {
+  // add a useEffect hook that calls on fetchUser() when the Userprovider mounts. This ensures that the user session is chekced every time the app loads, therefore the user state across page refreshes
+    fetchUser();
+     // Empty dependency array which means it will run only conce when the componnet mounts. 
+  }, []);
 
   const updateUser = (newUser) => {
     setUser(newUser);
@@ -33,8 +39,12 @@ export const UserProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateFavorites = (newFavorite) => {
+    // Update the favorites state
+    setFavorites((prevFavorites) => [...prevFavorites, newFavorite]); 
+  };
   return (
-    <UserContext.Provider value={{ user, setUser, updateUser, login, logout }}>
+    <UserContext.Provider value={{ user, setUser, updateUser, login, logout, favorites, updateFavorites  }}>
       {children}
     </UserContext.Provider>
   );
