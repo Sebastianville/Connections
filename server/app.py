@@ -142,6 +142,7 @@ class Signup(Resource):
         existing_user = Users.query.filter_by(email=data.get('email')).first()
         if existing_user:
             return make_response({'message': 'Email already taken'}, 422)
+        
         print(f"Received data: {data}")
         format = '%Y-%m-%d'
         new_user = Users(
@@ -164,9 +165,8 @@ class Signup(Resource):
             print(f"User {new_user.id} signed up successfully")
             
             if new_user.phone_number and new_user.receive_sms_notifications:
-                welcome_message = f"Hello {new_user.username}, welcome to ConnectingBuddy!"
+                welcome_message = f"Hello {new_user.username}, welcome to ConnectingBuddy platform!"
                 sms_response = send_welcome_message(new_user.phone_number, welcome_message)
-                print(f"SMS response: {sms_response}")
 
             return make_response(new_user.to_dict(), 201)
 
@@ -248,12 +248,6 @@ class AllFavorites(Resource):
             )
             db.session.add(new_favorite)
             db.session.commit()
-            # print(user.phone_number, user.receive_sms_notifications)
-
-            # if user.phone_number and user.receive_sms_notifications:
-            #     message_body = f"Hello {user.username}, you have favorited the resource: {new_favorite.resource.title}."
-            #     print(f"Sending SMS to {user.phone_number}: {message_body}")
-            #     send_sms(user.phone_number, message_body)
 
             return make_response(new_favorite.to_dict(), 201)
         
