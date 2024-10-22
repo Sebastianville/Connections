@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
+
 
 const AdminDashboard = () => {
+  const history = useHistory()
   const [resource, setResource] = useState({
     title: '',
     description: '',
-    type: 'internship',
+    link: '',  
+    resource_type: 'internship',  
   });
 
   const handleChange = (e) => {
@@ -14,7 +18,7 @@ const AdminDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('resources', {
+      const response = await fetch('/resources', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,7 +29,13 @@ const AdminDashboard = () => {
       if (!response.ok) throw new Error('Failed to submit resource');
       const newResource = await response.json();
       console.log('Resource submitted:', newResource);
-      setResource({ title: '', description: '', type: 'internship' });
+      
+      
+      setResource({ title: '', description: '', link: '', resource_type: 'internship' });
+      
+      alert('Resource submitted successfully!');
+      history.push("/college")
+
     } catch (error) {
       console.error('Error submitting resource:', error);
     }
@@ -44,8 +54,12 @@ const AdminDashboard = () => {
           <textarea name="description" value={resource.description} onChange={handleChange} required />
         </label>
         <label>
+          Link:  
+          <input type="url" name="link" value={resource.link} onChange={handleChange} required />
+        </label>
+        <label>
           Type:
-          <select name="type" value={resource.type} onChange={handleChange}>
+          <select name="resource_type" value={resource.resource_type} onChange={handleChange}>  {/* Change name to resource_type */}
             <option value="internship">Internship</option>
             <option value="scholarship">Scholarship</option>
           </select>

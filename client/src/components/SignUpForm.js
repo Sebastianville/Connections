@@ -13,8 +13,8 @@ const SignUpSchema = yup.object().shape({
   bio: yup.string().min(10, "Bio must be at least 10 characters").required("Bio is required"),
   is_mentor: yup.boolean().required("Mentor status is required"),
   cover_photo: yup.string().url("Must be a valid URL"), 
-  // it is a regex that matches a strign that starts with a digit and contains exactly 10 digits in total and ends after the 10 digits
-  phone_number: yup.string().matches(/^\d{10}$/, "Must be a valid phone number"), 
+  // it is a regex that matches a strign that starts with a digit and contains exactly 11 digits in total and ends after the 11 digits
+  phone_number: yup.string().matches(/^\d{11}$/, "Must be a valid phone number"), 
   receive_sms_notifications: yup.boolean(),
 });
 

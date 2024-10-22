@@ -46,7 +46,7 @@ const NavBar = () => {
   const { user, updateUser } = useContext(UserContext);
   const history = useHistory()
   const handleLogout = async () => {
-    await fetch('http://localhost:5555/logout', {
+    await fetch('/logout', {
       method: 'DELETE',
       credentials: 'include',
     });

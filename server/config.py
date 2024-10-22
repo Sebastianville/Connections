@@ -9,7 +9,11 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from flask_bcrypt import Bcrypt
 
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
+VARIABLE_NAME = os.environ.get('VARIABLE_NAME')
 # Local imports
 
 # Instantiate app, set attributes
@@ -35,8 +39,9 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_crede
 bcrypt = Bcrypt(app)
 
 
-app.secret_key = 'your_secret_key'
+app.secret_key = VARIABLE_NAME
 
 import http.client
 import json
+
 

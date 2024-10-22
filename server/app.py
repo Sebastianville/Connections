@@ -19,13 +19,100 @@ from config import app, db, api
 # Add your model imports
 from models import Users, Favorite, Resources, Mentorships
 from werkzeug.exceptions import NotFound
+import http.client
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+INFOBIP_AUTH_TOKEN = os.environ.get('INFOBIP_AUTH_TOKEN')
+INFOBIP_SENDER_NUMBER= os.environ.get('INFOBIP_SENDER_NUMBER')
+
+def send_welcome_message(phone_number, message_text):
+    conn = http.client.HTTPSConnection("d988xv.api.infobip.com")
+
+    payload = json.dumps({
+        "messages": [
+            {
+                "destinations": [{"to": phone_number}],
+                "from": INFOBIP_SENDER_NUMBER,  
+                "text": message_text
+            }
+        ]
+    })
+
+    headers = {
+        'Authorization': INFOBIP_AUTH_TOKEN,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    }
+
+    try:
+        conn.request("POST", "/sms/2/text/advanced", payload, headers)
+        res = conn.getresponse()
+        data = res.read()
+        response_data = data.decode("utf-8")
 
 
+        if res.status != 200:
+            print(f"Failed to send SMS. Status: {res.status}. Response: {response_data}")
+            return {'error': response_data}
+        
+        return response_data
 
-@app.route('/')
-def welcome():
-    return jsonify(message="Welcome to the ConnectingBuddy")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return {'error': str(e)}
 
+
+class Signup(Resource):
+    def post(self):
+        data = request.get_json()
+        password = data.get('password')
+        password_confirmation = data.get('password_confirmation')
+
+        if password != password_confirmation:
+            print("Passwords do not match")
+            return make_response({'message': 'Passwords do not match'}, 400)
+        
+        # Check if the email already exists
+        existing_user = Users.query.filter_by(email=data.get('email')).first()
+        if existing_user:
+            return make_response({'message': 'Email already taken'}, 422)
+        
+        print(f"Received data: {data}")
+        format = '%Y-%m-%d'
+        new_user = Users(
+            username=data.get('username'),
+            email=data.get('email'),
+            birthdate= datetime.datetime.strptime(data.get('birthdate'), format),
+            bio=data.get('bio'),
+            is_mentor=bool(data.get('is_mentor')),
+            cover_photo=data.get('cover_photo'),
+            phone_number=data.get('phone_number'),
+            receive_sms_notifications= data.get('receive_sms_notifications'),
+            password = data.get('password')
+        )
+        
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            session['user_id'] = new_user.id
+            print(f"User {new_user.id} signed up successfully")
+            
+            if new_user.phone_number and new_user.receive_sms_notifications:
+                welcome_message = f"Hello {new_user.username}, welcome to ConnectingBuddy platform!"
+                sms_response = send_welcome_message(new_user.phone_number, welcome_message)
+                print(sms_response)
+
+            return make_response(new_user.to_dict(), 201)
+
+        except Exception as e:
+            print(f"Error during signup: {e}")
+            return make_response({'message': str(e)}, 422)
+api.add_resource(Signup, '/signup')
 
 
 
@@ -79,8 +166,14 @@ class OneUser(Resource):
             return make_response(jsonify({'error': "User not found"}), 404)
         data = request.get_json()
         print(f"Received update data for user {id}: {data}")
+
+        if 'password' in data:
+            user.password_hash = data['password']
+            data.pop('password')  
+
         for key, value in data.items():
             setattr(user, key, value)
+        
         try: 
             db.session.commit()
             return make_response(jsonify(user.to_dict()), 200)
@@ -92,9 +185,7 @@ api.add_resource(OneUser, '/users/<int:id>')
 
 class AllMentorships(Resource):
     def get(self):
-        mentorships = Mentorships.query.all()
-        if(not mentorships): 
-            return make_response({"error": "user not found"}, 404)
+        mentorships = Mentorships.query.join(Users).all()
         mentorship_list = [mentorship.to_dict() for mentorship in mentorships]
         return make_response(mentorship_list, 200)
 
@@ -116,64 +207,46 @@ class CreateNewResource(Resource):
             #get json from request
             data = request.get_json()
             print(f"Received data for new resource: {data}")
+
+            mentor_id = data.get('mentor_id') 
+            mentor = Users.query.filter_by(id=mentor_id, is_mentor=True).first()
+
+            if not mentor:
+                return make_response({'message': 'Mentor not found or not valid'}, 404)
+
             #create a new resource instance
             new_resource = Resources(**data)
             db.session.add(new_resource)
             db.session.commit()
             print(f"Resource created successfully: {new_resource.to_dict()}")
+
+            new_mentorship = Mentorships(
+                resource_id=new_resource.id,
+                user_id=mentor.id,  
+                summary="Pending summary",  
+                completed_the_event=None,  # Default: event not completed (optional if nullable)
+                alternate_email=mentor.email  
+            )
+            db.session.add(new_mentorship)
+            db.session.commit()
+            print(f"Mentorship created successfully: {new_mentorship.to_dict()}")
+
         except Exception as e:
             print(f"Error creating resource: {e}")
             return make_response({'message': 'creating the new resource went wrong'}, 422)
-        return make_response(new_resource.to_dict(), 201)
+        
+        return make_response({
+            'resource': new_resource.to_dict(),
+            'mentorship': {
+                'mentor': mentor.username,
+                'email': mentor.email,
+                'summary': new_mentorship.summary,
+                'completed_the_event': new_mentorship.completed_the_event
+            }
+        }, 201)
     
 api.add_resource(CreateNewResource, '/resources')
 
-class Signup(Resource):
-    def post(self):
-        data = request.get_json()
-        password = data.get('password')
-        password_confirmation = data.get('password_confirmation')
-
-        if password != password_confirmation:
-            print("Passwords do not match")
-            return make_response({'message': 'Passwords do not match'}, 400)
-        
-        # Check if the email already exists
-        existing_user = Users.query.filter_by(email=data.get('email')).first()
-        if existing_user:
-            return make_response({'message': 'Email already taken'}, 422)
-        
-        print(f"Received data: {data}")
-        format = '%Y-%m-%d'
-        new_user = Users(
-            username=data.get('username'),
-            email=data.get('email'),
-            birthdate= datetime.datetime.strptime(data.get('birthdate'), format),
-            bio=data.get('bio'),
-            is_mentor=bool(data.get('is_mentor')),
-            cover_photo=data.get('cover_photo'),
-            phone_number=data.get('phone_number'),
-            receive_sms_notifications= data.get('receive_sms_notifications'),
-            password = data.get('password')
-        )
-        
-
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            session['user_id'] = new_user.id
-            print(f"User {new_user.id} signed up successfully")
-            
-            if new_user.phone_number and new_user.receive_sms_notifications:
-                welcome_message = f"Hello {new_user.username}, welcome to ConnectingBuddy platform!"
-                sms_response = send_welcome_message(new_user.phone_number, welcome_message)
-
-            return make_response(new_user.to_dict(), 201)
-
-        except Exception as e:
-            print(f"Error during signup: {e}")
-            return make_response({'message': str(e)}, 422)
-api.add_resource(Signup, '/signup')
 
 class UserLogin(Resource):
     def post(self):
@@ -218,9 +291,6 @@ api.add_resource(Logout, '/logout')
 
 class AllFavorites(Resource):
     def post(self):
-        # print("POST /favorites route hit")
-        # print(f"Session data: {session}")
-        # print("Before checking for user in session")
         user_id = session.get('user_id')
         if not user_id:
             print("Unauthorized: no user in session")
@@ -260,8 +330,9 @@ class AllFavorites(Resource):
         if not user_id:
             return jsonify({'error': 'User not authenticated'}), 401
 
-        favorites = Favorite.query.filter_by(user_id=user_id).all()
-        return jsonify([favorite.to_dict() for favorite in favorites]), 200
+        favorites = Favorite.query.filter_by(user_id=user_id).join(Resources).join(Mentorships).all()
+        favorites_with_mentorships = [{'favorite': favorite.to_dict(),'mentorships': [mentorship.to_dict() for mentorship in favorite.resource.mentorships]} for favorite in favorites]
+        return jsonify(favorites_with_mentorships), 200
         
 api.add_resource(AllFavorites, '/favorites')
 

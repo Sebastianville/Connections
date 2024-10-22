@@ -115,10 +115,10 @@ class Resources(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     favorites = db.relationship('Favorite', back_populates='resource', cascade='all, delete-orphan')
-    mentorships = db.relationship('Mentorships', back_populates='resource')
+    mentorships = db.relationship('Mentorships', back_populates='resource', cascade='all, delete-orphan')
 
     serialize_rules = ('-favorites.resource', '-mentorships.resource')
-    serialize_only = ('id', 'description', 'title', 'link', 'resource_type', 'created_at')  
+    
 
 
 
@@ -144,7 +144,7 @@ class Resources(db.Model, SerializerMixin):
 
     @validates('resource_type')
     def validate_resource_type(self, key, resource_type):
-        if resource_type not in ['scholarship', 'internship']:  # Specify allowed values
+        if resource_type not in ['scholarship', 'internship']:  
             raise ValueError("resource_type must be 'scholarship' or 'internship'")
         return resource_type
 
@@ -166,8 +166,10 @@ class Mentorships(db.Model, SerializerMixin):
     users = db.relationship("Users", back_populates='mentorships')
 
 
-    serialize_rules = ('-resource.mentorships', '-users.mentorships')
-    serialize_only = ('id', 'user_id', 'resource_id', 'completed_the_event', 'summary', 'alternate_email')  
+
+    serialize_rules = ('resource.mentorships', 'users.id', 'users.username', 'users.email')
+    
+     
    
     @validates('user_id')
     def validate_user_id(self, key, user_id):
