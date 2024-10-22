@@ -13,7 +13,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-VARIABLE_NAME = os.environ.get('VARIABLE_NAME')
+
 # Local imports
 
 # Instantiate app, set attributes
@@ -39,7 +39,7 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_crede
 bcrypt = Bcrypt(app)
 
 
-app.secret_key = VARIABLE_NAME
+app.secret_key = os.environ.get('VARIABLE_NAME')
 
 import http.client
 import json

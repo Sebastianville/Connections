@@ -8,7 +8,7 @@ from flask import request, make_response, jsonify, session
 from flask_restful import Resource
 from flask_bcrypt import Bcrypt
 
-# from twilio_helper import send_sms 
+
 import datetime 
 import requests
 
@@ -26,8 +26,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INFOBIP_AUTH_TOKEN = os.environ.get('INFOBIP_AUTH_TOKEN')
-INFOBIP_SENDER_NUMBER= os.environ.get('INFOBIP_SENDER_NUMBER')
+
+
 
 def send_welcome_message(phone_number, message_text):
     conn = http.client.HTTPSConnection("d988xv.api.infobip.com")
@@ -36,14 +36,14 @@ def send_welcome_message(phone_number, message_text):
         "messages": [
             {
                 "destinations": [{"to": phone_number}],
-                "from": INFOBIP_SENDER_NUMBER,  
+                "from": os.environ.get('INFOBIP_SENDER_NUMBER'), 
                 "text": message_text
             }
         ]
     })
 
     headers = {
-        'Authorization': INFOBIP_AUTH_TOKEN,
+        'Authorization':  os.environ.get('INFOBIP_AUTH_TOKEN'),
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
