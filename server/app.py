@@ -56,13 +56,12 @@ def send_welcome_message(phone_number, message_text):
 
 
         if res.status != 200:
-            print(f"Failed to send SMS. Status: {res.status}. Response: {response_data}")
+            
             return {'error': response_data}
         
         return response_data
 
     except Exception as e:
-        print(f"An error occurred: {e}")
         return {'error': str(e)}
 
 
