@@ -39,7 +39,7 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_crede
 bcrypt = Bcrypt(app)
 
 
-app.secret_key = os.environ.get('VARIABLE_NAME')
+app.secret_key = os.environ.get('SECRET_KEY')
 
 import http.client
 import json
