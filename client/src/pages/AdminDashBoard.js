@@ -29,10 +29,11 @@ const AdminDashboard = () => {
     summary: '',
     completed_the_event: '', 
   };
-
+  // values is an objec containing the form field vales that the user has filled out
+// resetForm syntax is using destructuring to extract the resetForm function from the second argument, which is an object that Formik provides to the onSubmit function.
   const handleSubmit = async (values, { resetForm }) => {
     try {
-      // Separate resource data from mentor data
+      
       const resourceData = {
         title: values.title,
         description: values.description,
@@ -46,7 +47,7 @@ const AdminDashboard = () => {
         completed_the_event: values.completed_the_event,
       };
 
-      // Submit resource data first
+      
       const resourceResponse = await fetch('/resources', {
         method: 'POST',
         headers: {

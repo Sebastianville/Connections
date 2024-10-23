@@ -9,6 +9,7 @@ const SignUpSchema = yup.object().shape({
   email: yup.string().email("Must be a valid email").required("Email is required"),
   password: yup.string().required("Password is required").min(6, "Password must be at least 6 characters"),
   password_confirmation: yup.string().oneOf([yup.ref('password'), null], "Passwords must match").required("Password confirmation is required"),
+  // It subtracts the user's birth year from the current year, then adjusts for whether their birthday has already occurred this year.
   birthdate: yup
     .date()
     .required("Birthdate is required")
