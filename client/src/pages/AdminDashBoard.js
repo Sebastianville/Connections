@@ -31,6 +31,7 @@ const AdminDashboard = () => {
   };
   // values is an objec containing the form field vales that the user has filled out
 // resetForm syntax is using destructuring to extract the resetForm function from the second argument, which is an object that Formik provides to the onSubmit function.
+// The resetForm function allows you to reset the form fields back to their initial values. This is useful after a successful submission to clear out the input fields
   const handleSubmit = async (values, { resetForm }) => {
     try {
       
@@ -60,7 +61,7 @@ const AdminDashboard = () => {
       if (!resourceResponse.ok) throw new Error('Failed to submit resource');
       const newResource = await resourceResponse.json();
 
-      // Submit mentorship data next
+      // want to add the destructure the mentorship data and include the resource_id. 
       const mentorshipData = {
         ...mentorData,
         resource_id: newResource.resource.id, // Link mentorship to the newly created resource
