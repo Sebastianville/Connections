@@ -9,7 +9,21 @@ const SignUpSchema = yup.object().shape({
   email: yup.string().email("Must be a valid email").required("Email is required"),
   password: yup.string().required("Password is required").min(6, "Password must be at least 6 characters"),
   password_confirmation: yup.string().oneOf([yup.ref('password'), null], "Passwords must match").required("Password confirmation is required"),
-  birthdate: yup.date().required("Birthdate is required"),
+  // It subtracts the user's birth year from the current year, then adjusts for whether their birthday has already occurred this year.
+  birthdate: yup
+    .date()
+    .required("Birthdate is required")
+    .test("is-18", "You must be 18 years or older", function (value) {
+      const today = new Date();
+      const birthDate = new Date(value);
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        return age - 1 >= 18;
+      }
+      return age >= 18;
+    }),
   bio: yup.string().min(10, "Bio must be at least 10 characters").required("Bio is required"),
   is_mentor: yup.boolean().required("Mentor status is required"),
   cover_photo: yup.string().url("Must be a valid URL"), 

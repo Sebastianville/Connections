@@ -53,12 +53,6 @@ const College = () => {
       return;
     }
 
-    // This isn't fully working
-    // if (user.favorites.some(favorite => favorite.id === resourceId)) {
-    //   setNotification('This resource is already in your favorites.');
-    //   clearNotification();
-    //   return;
-    // }
 
     try {
       const response = await fetch('/favorites', {
@@ -89,7 +83,7 @@ const College = () => {
   const clearNotification = () => {
     setTimeout(() => {
       setNotification('');
-    }, 3000);
+    }, 5000);
   };
 
   return (

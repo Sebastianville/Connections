@@ -27,7 +27,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-
+@app.route('/')
+def welcome():
+    return jsonify(message="Welcome to ConnectingBuddy")
 
 def send_welcome_message(phone_number, message_text):
     conn = http.client.HTTPSConnection("d988xv.api.infobip.com")
@@ -80,7 +82,7 @@ class Signup(Resource):
         if existing_user:
             return make_response({'message': 'Email already taken'}, 422)
         
-        print(f"Received data: {data}")
+        
         format = '%Y-%m-%d'
         new_user = Users(
             username=data.get('username'),
@@ -187,6 +189,30 @@ class AllMentorships(Resource):
         mentorships = Mentorships.query.join(Users).all()
         mentorship_list = [mentorship.to_dict() for mentorship in mentorships]
         return make_response(mentorship_list, 200)
+    
+    def post(self):
+        try:
+            data = request.get_json()
+            mentor_email = data.get('mentor_email')
+            mentor = Users.query.filter_by(email=mentor_email, is_mentor=True).first()
+            if not mentor:
+                return make_response({'message': 'Mentor not found or not valid'}, 404)
+
+            format = '%Y-%m-%d'
+            new_mentorship = Mentorships(
+                resource_id=data['resource_id'],  # Resource ID passed from front-end
+                user_id=mentor.id,  
+                summary=data.get('summary', "Pending summary"),
+                completed_the_event=datetime.datetime.strptime(data['completed_the_event'], format),
+                alternate_email=mentor.email
+            )
+            db.session.add(new_mentorship)
+            db.session.commit()
+
+            return make_response({'mentorship': new_mentorship.to_dict()}, 201)
+        except Exception as e:
+            print(f"Error creating mentorship: {e}")
+            return make_response({'message': 'creating the mentorship went wrong'}, 422)
 
 api.add_resource(AllMentorships, '/mentorships')
 
@@ -197,54 +223,22 @@ class AllResources(Resource):
             return make_response({"error": "resource not found"}, 404)
         resources_list = [que.to_dict() for que in resources]
         return make_response(resources_list, 200)
-api.add_resource(AllResources, '/resources')
+    
 
-
-class CreateNewResource(Resource):
     def post(self):
-        try: 
-            #get json from request
+        try:
             data = request.get_json()
             print(f"Received data for new resource: {data}")
 
-            mentor_id = data.get('mentor_id') 
-            mentor = Users.query.filter_by(id=mentor_id, is_mentor=True).first()
-
-            if not mentor:
-                return make_response({'message': 'Mentor not found or not valid'}, 404)
-
-            #create a new resource instance
             new_resource = Resources(**data)
             db.session.add(new_resource)
             db.session.commit()
-            print(f"Resource created successfully: {new_resource.to_dict()}")
 
-            new_mentorship = Mentorships(
-                resource_id=new_resource.id,
-                user_id=mentor.id,  
-                summary="Pending summary",  
-                completed_the_event=None,  # Default: event not completed (optional if nullable)
-                alternate_email=mentor.email  
-            )
-            db.session.add(new_mentorship)
-            db.session.commit()
-            print(f"Mentorship created successfully: {new_mentorship.to_dict()}")
-
+            return make_response({'resource': new_resource.to_dict()}, 201)
         except Exception as e:
             print(f"Error creating resource: {e}")
             return make_response({'message': 'creating the new resource went wrong'}, 422)
-        
-        return make_response({
-            'resource': new_resource.to_dict(),
-            'mentorship': {
-                'mentor': mentor.username,
-                'email': mentor.email,
-                'summary': new_mentorship.summary,
-                'completed_the_event': new_mentorship.completed_the_event
-            }
-        }, 201)
-    
-api.add_resource(CreateNewResource, '/resources')
+api.add_resource(AllResources, '/resources')
 
 
 class UserLogin(Resource):
