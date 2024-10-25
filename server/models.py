@@ -27,7 +27,7 @@ class Users(db.Model, SerializerMixin):
 
     favorite_resources = association_proxy('favorites', 'resource')
 
-    serialize_rules = ('-favorites.user', '-mentorships.users')
+    serialize_rules = ('-favorites.user', '-mentorships.users', '-favorite_resources.favorites')
     serialize_only = ('id', 'username', 'email', 'bio', 'created_at', 'birthdate', 'favorites', 'is_mentor', 'phone_number', 'receive_sms_notifications')  
 
     @validates("username")
@@ -98,7 +98,7 @@ class Favorite(db.Model, SerializerMixin):
     resource = db.relationship('Resources', back_populates='favorites')
 
     serialize_rules = ('-user.favorites', '-resource.favorites')
-    serialize_only = ('id','resource_id', 'user_id', 'created_at', 'personal_comment', 'resource')
+    # serialize_only = ('id','resource_id', 'user_id', 'created_at', 'personal_comment', 'resource')
 
     def __repr__(self):
         return f"<Favorite {self.id}, {self.personal_comment}, {self.user_id}>"
@@ -117,8 +117,9 @@ class Resources(db.Model, SerializerMixin):
     favorites = db.relationship('Favorite', back_populates='resource', cascade='all, delete-orphan')
     mentorships = db.relationship('Mentorships', back_populates='resource', cascade='all, delete-orphan')
 
-    serialize_rules = ('-favorites.resource', '-mentorships.resource')
-    
+    # serialize_rules = ('-favorites.resource', '-mentorships.resource')
+    serialize_rules = ('-favorites.resource', '-mentorships.resource', '-mentorships.users')
+
 
 
 
@@ -166,8 +167,8 @@ class Mentorships(db.Model, SerializerMixin):
     users = db.relationship("Users", back_populates='mentorships')
 
 
-
-    serialize_rules = ('resource.mentorships', 'users.id', 'users.username', 'users.email')
+    serialize_rules = ('-resource.mentorships', '-users.mentorships')
+    # serialize_rules = ('resource.mentorships', 'users.id', 'users.username', 'users.email')
     
      
    

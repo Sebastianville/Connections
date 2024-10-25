@@ -23,8 +23,17 @@ import http.client
 import json
 import os
 from dotenv import load_dotenv
+import http.client
+import json
 
 load_dotenv()
+
+BASE_URL = os.getenv('BASE_URL')
+INFOBIP_SENDER_NUMBER = os.getenv('INFOBIP_SENDER_NUMBER')
+INFOBIP_AUTH_TOKEN = os.getenv('INFOBIP_AUTH_TOKEN')
+print(os.getenv('BASE_URL'))
+print(os.getenv('INFOBIP_SENDER_NUMBER'))
+print(os.getenv('INFOBIP_AUTH_TOKEN'))
 
 
 @app.route('/')
@@ -32,24 +41,27 @@ def welcome():
     return jsonify(message="Welcome to ConnectingBuddy")
 
 def send_welcome_message(phone_number, message_text):
-    conn = http.client.HTTPSConnection("d988xv.api.infobip.com")
+    # Establish HTTPS connection to Infobip
+    conn = http.client.HTTPSConnection(BASE_URL)
 
+    # Prepare the SMS payload
     payload = json.dumps({
         "messages": [
             {
                 "destinations": [{"to": phone_number}],
-                "from": os.environ.get('INFOBIP_SENDER_NUMBER'), 
+                "from": INFOBIP_SENDER_NUMBER, 
                 "text": message_text
             }
         ]
     })
 
     headers = {
-        'Authorization':  os.environ.get('INFOBIP_AUTH_TOKEN'),
+        'Authorization':f"App {INFOBIP_AUTH_TOKEN}",
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     }
 
+     # Send the request
     try:
         conn.request("POST", "/sms/2/text/advanced", payload, headers)
         res = conn.getresponse()

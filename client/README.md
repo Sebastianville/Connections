@@ -1,70 +1,137 @@
-# Getting Started with Create React App
+Phase 5 Full-Stack Application Capstone Project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ConnectingBuddy
 
-## Available Scripts
+Description 
+"ConnectingBuddy" is an app that aims to help college students discover and pinpoint opportunities while building a strong network. The goal is for mentors to share opportunities, such as internships and scholarships, that they completed during their undergrad and allow themselves to be contacted by future mentees. 
 
-In the project directory, you can run:
+Wire Frame:
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Models: 
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+React Tree Diagram: 
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-### Making a Progressive Web App
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-### Advanced Configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-### Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-### `npm run build` fails to minify
+Getting Started
+To set up a local instance, follow these steps:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Front-end Installation
+Clone the repository:
+
+git clone git@github.com:Sebastianville/Connections.git
+
+Change to the root directory:
+
+cd projectify
+
+Install npm packages:
+
+npm install
+
+Move to the front-end directory:
+
+cd client
+
+Install npm packages in the front-end directory:
+
+npm install
+
+Back-end Installation
+Make sure you are in the root directory of the project.
+
+Install pipenv and the necessary dependencies:
+
+pipenv install
+
+Activate the virtual environment:
+
+pipenv shell
+
+Databbase Setup
+you can create a migration environment by navigating to cd server and following these prompts to create two new directories-- instance and migrations, where app.db will be added to the instance directory.    
+    flask db init
+
+    flask db migrate -m "Initial migration."
+
+    flask db upgrade
+
+    python seed.py
+
+
+API Routes 
+
+User Routes
+    POST - /users
+    GET-/users
+    PATCH-/users/:id
+    DELETE- /users/:id
+
+Mentorships Routes
+    GET-/mentorships
+    POST-/Mentorships
+
+Resources Routes
+    POST- /resources
+
+Favorites Routes 
+    POST(Login-Required)- /favorites
+    DELETE(Login-Required)- /favorites/:id
+
+Login Route
+    POST- /login  => curr_user instance (with relationships)
+
+Check Session Route
+    GET- /check_session
+
+Logout Route
+    DELETE(Login_required)-/logout
+
+
+Validations and Constraints 
+User
+    Required email, username, bio, whether you are a mentor or not, password and password confirmation 
+    Password must be at least 6 charachters and it is hash 
+    Password and pasword confirmation must match 
+    Must be at least 18 years or older 
+    Optional- phone number to recieve text message through InfoBip
+
+Resource
+    Required title, link, description, resource type
+    Resource type was either a scholarship or inernship 
+
+
+
+
+Stretch Goals 
+Add a linkedin account to the resources
+Forgot password login 
+Add multiple mentors in one resource 
+Send text messages to people who favorite a resource and send reminders of a deadline 
+
+
+
+
